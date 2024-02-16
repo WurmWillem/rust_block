@@ -48,21 +48,23 @@ struct Sphere {
 // Fragment shader
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
-    let width = in.win_size.x;
-    let height = in.win_size.y;
+    let win_width = in.win_size.x;
+    let win_height = in.win_size.y;
 
-    let aspect_ratio = width / height;
-    let view_height = 2.;
+    let aspect_ratio = win_width / win_height;
+    let view_height = win_height;
     let view_width = view_height * aspect_ratio;
 
-    let focal_length = 1.;
+    // let focal_length = 1.;
+    let focal_length = sqrt(view_width * view_width + view_height * view_height) / (2.*tan(45./2.)) ;
     let cam_center = vec3f(in.cam_pos.xy, 0.);
+    // let cam_center = vec3f(in.cam_pos.x + view_width * 0.5, in.cam_pos.y + view_height * 0.5, 0.);
 
     let view_u = vec3f(view_width, 0., 0.);
     let view_v = vec3f(0., -view_height, 0.);
 
-    let delta_u = view_u / width;
-    let delta_v = view_v / height;
+    let delta_u = view_u / win_width;
+    let delta_v = view_v / win_height;
 
     let d = -0.5 * (view_v + view_u);
     let view_upper_left = cam_center - vec3f(0., 0., focal_length) + d;
@@ -80,7 +82,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 
 fn ray_color(ray: Ray) -> vec3f {
-    let sphere = Sphere(vec3f(0.,0.,-1.), 0.5, vec3f(1., 0., 0.));
+    let sphere = Sphere(vec3f(0.,0.,-1.), 0.1, vec3f(1., 0., 0.));
 
     if (hit_sphere(sphere, ray)) {
         return sphere.color;
