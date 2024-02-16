@@ -59,7 +59,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_width = view_height * aspect_ratio;
 
     // let focal_length = 1.;
-    let focal_length = sqrt(view_width * view_width + view_height * view_height) / (2.*tan(45./2.)) ;
+    let focal_length = sqrt(view_width * view_width + view_height * view_height) / 1.1157034787; // / 2*tan(45/2)
     let cam_center = vec3f(in.cam_pos.xy, 0.);
     // let cam_center = vec3f(in.cam_pos.x + view_width * 0.5, in.cam_pos.y + view_height * 0.5, 0.);
 
@@ -75,26 +75,24 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     let pix_center = upper_left_pix + in.clip_position.x * delta_u + in.clip_position.y * delta_v;
 
-    var ray: Ray;
-    ray.orig = cam_center;
-    ray.dir = pix_center - cam_center;
-    let color = ray_color(ray);
+    let ray = Ray(cam_center, pix_center - cam_center);
+    let color = get_ray_color(ray);
 
     return vec4<f32>(color, 1.0);
-    // return vec4<f32>(800. / width, 800. / width, 800. / width, 1.0);
+    // return vec4<f32>(0.99, 0., 0., 1.0);
 }
 
-fn ray_color(ray: Ray) -> vec3f {
+fn get_ray_color(ray: Ray) -> vec3f {
     let sphere = Sphere(vec3f(0.,0.,-1.), 0.2, vec3f(1., 0., 0.));
 
     let t = hit_sphere(sphere, ray);
     if t > 0. {
         let n = normalize(ray_at(ray, t) - sphere.pos);
-        return 0.5*vec3f(n.x+1., n.y+1., n.z+1.);
+        return 0.5*(n+1.);
     }
 
     let unit_dir = normalize(ray.dir);
-    let a = 2. * (unit_dir.y + 1.);
+    let a = 3. * (unit_dir.y + 1.);
     // return vec4<f32>(0., 0., 0.3, 1.0);
     return ((1. - a) * vec3f(1.) + a * vec3f(0.5, 0.7, 1.));
 }
