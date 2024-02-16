@@ -38,6 +38,9 @@ struct Ray {
     orig: vec3<f32>,
     dir: vec3<f32>,
 }
+fn ray_at(ray: Ray, t: f32) -> vec3f {
+    return ray.orig + t * ray.dir;
+}
 
 struct Sphere {
     pos: vec3f,
@@ -82,10 +85,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 }
 
 fn ray_color(ray: Ray) -> vec3f {
-    let sphere = Sphere(vec3f(0.,0.,-1.), 0.1, vec3f(1., 0., 0.));
+    let sphere = Sphere(vec3f(0.,0.,-1.), 0.2, vec3f(1., 0., 0.));
 
-    if (hit_sphere(sphere, ray)) {
-        return sphere.color;
+    let t = hit_sphere(sphere, ray);
+    if t > 0. {
+        let n = normalize(ray_at(ray, t) - sphere.pos);
+        return 0.5*vec3f(n.x+1., n.y+1., n.z+1.);
     }
 
     let unit_dir = normalize(ray.dir);
@@ -94,11 +99,16 @@ fn ray_color(ray: Ray) -> vec3f {
     return ((1. - a) * vec3f(1.) + a * vec3f(0.5, 0.7, 1.));
 }
 
-fn hit_sphere(s: Sphere, r: Ray) -> bool {
+fn hit_sphere(s: Sphere, r: Ray) -> f32 {
     let oc = r.orig - s.pos;
     let a = dot(r.dir, r.dir);
     let b = 2.0 * dot(oc, r.dir);
     let c = dot(oc, oc) - s.radius*s.radius;
     let discriminant = b*b - 4. * a*c;
-    return discriminant >= 0.;
+
+    if discriminant < 0. {
+        return -1.;
+    } 
+    return (-b - sqrt(discriminant) ) / (2.*a);
+    // return discriminant >= 0.;
 }
