@@ -102,13 +102,13 @@ fn ray_color(ray: Ray) -> vec3f {
 fn hit_sphere(s: Sphere, r: Ray) -> f32 {
     let oc = r.orig - s.pos;
     let a = dot(r.dir, r.dir);
-    let b = 2.0 * dot(oc, r.dir);
+    let half_b = dot(oc, r.dir);
     let c = dot(oc, oc) - s.radius*s.radius;
-    let discriminant = b*b - 4. * a*c;
+    let discriminant = half_b*half_b - a*c;
 
     if discriminant < 0. {
         return -1.;
     } 
-    return (-b - sqrt(discriminant) ) / (2.*a);
+    return (-half_b - sqrt(discriminant) ) / a;
     // return discriminant >= 0.;
 }
