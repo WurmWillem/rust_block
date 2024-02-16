@@ -9,11 +9,13 @@ use winit::{
     window::WindowBuilder,
 };
 
+pub const WIN_SIZE: (f32, f32) = (800., 800.);
+
 pub async fn run() {
     env_logger::init();
     let event_loop = EventLoop::new();
     let window = WindowBuilder::new()
-        .with_inner_size(PhysicalSize::new(800., 800.))
+        .with_inner_size(PhysicalSize::new(WIN_SIZE.0, WIN_SIZE.1))
         .build(&event_loop)
         .unwrap();
 

@@ -1,4 +1,7 @@
-use crate::minor::{Input, Uniform, Vertex, VERTICES};
+use crate::{
+    minor::{Input, Uniform, Vertex, VERTICES},
+    WIN_SIZE,
+};
 
 pub struct State {
     surface: wgpu::Surface,
@@ -87,7 +90,10 @@ impl State {
             usage: wgpu::BufferUsages::VERTEX,
         });
 
-        let uniform = Uniform { pos: [0., 0.] };
+        let uniform = Uniform {
+            cam_pos: [0., 0.],
+            win_size: [WIN_SIZE.0, WIN_SIZE.1],
+        };
 
         let uniform_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Camera Buffer"),
@@ -186,6 +192,13 @@ impl State {
             self.config.width = new_size.width;
             self.config.height = new_size.height;
             self.surface.configure(&self.device, &self.config);
+            self.uniform.win_size[0] = new_size.width as f32;
+            self.uniform.win_size[1] = new_size.height as f32;
+            self.queue.write_buffer(
+                &self.uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[self.uniform]),
+            )
         }
     }
 
@@ -226,35 +239,35 @@ impl State {
     pub fn update(&mut self) {
         let speed = 0.01;
         if self.input.a {
-            self.uniform.pos[0] += speed;
+            self.uniform.cam_pos[0] += speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,
-                bytemuck::cast_slice(&[self.uniform.pos]),
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
             );
         }
         if self.input.d {
-            self.uniform.pos[0] -= speed;
+            self.uniform.cam_pos[0] -= speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,
-                bytemuck::cast_slice(&[self.uniform.pos]),
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
             );
         }
         if self.input.w {
-            self.uniform.pos[1] -= speed;
+            self.uniform.cam_pos[1] -= speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,
-                bytemuck::cast_slice(&[self.uniform.pos]),
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
             );
         }
         if self.input.s {
-            self.uniform.pos[1] += speed;
+            self.uniform.cam_pos[1] += speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,
-                bytemuck::cast_slice(&[self.uniform.pos]),
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
             );
         }
     }

@@ -9,10 +9,16 @@ struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(1) pos: vec3<f32>,
     @location(2) cam_pos: vec2f,
+    @location(3) win_size: vec2f,
 };
 
+struct Uniform {
+    cam_pos: vec2f,
+    win_size: vec2f,
+}
+
 @group(0) @binding(0) 
-var<uniform> cam_pos: vec2f;
+var<uniform> uni: Uniform;
 
 @vertex
 fn vs_main(
@@ -22,13 +28,11 @@ fn vs_main(
     // out.color = vert.color;
     out.pos = vert.position;
     out.clip_position = vec4<f32>(vert.position, 1.0);
-    out.cam_pos = cam_pos;
+    out.cam_pos = uni.cam_pos.xy;
+    out.win_size = uni.win_size.xy;
     // out = vec4<f32>(vert.position, 1.0);
     return out;
 }
-
-const width: f32 = 800.;
-const height: f32 = 800.;
 
 struct Ray {
     orig: vec3<f32>,
@@ -44,6 +48,9 @@ struct Sphere {
 // Fragment shader
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
+    let width = in.win_size.x;
+    let height = in.win_size.y;
+
     let aspect_ratio = width / height;
     let view_height = 2.;
     let view_width = view_height * aspect_ratio;
@@ -69,6 +76,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let color = ray_color(ray);
 
     return vec4<f32>(color, 1.0);
+    // return vec4<f32>(800. / width, 800. / width, 800. / width, 1.0);
 }
 
 fn ray_color(ray: Ray) -> vec3f {

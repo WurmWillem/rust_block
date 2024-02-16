@@ -1,7 +1,8 @@
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniform {
-    pub pos: [f32; 2],
+    pub cam_pos: [f32; 2],
+    pub win_size: [f32; 2],
 }
 
 #[repr(C)]
