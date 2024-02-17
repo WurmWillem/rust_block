@@ -237,7 +237,7 @@ impl State {
     }
 
     pub fn update(&mut self) {
-        let speed = 0.01;
+        let speed = 5.;
         if self.input.a {
             self.uniform.cam_pos[0] += speed;
             self.queue.write_buffer(
@@ -255,7 +255,7 @@ impl State {
             );
         }
         if self.input.w {
-            self.uniform.cam_pos[1] -= speed;
+            self.uniform.cam_pos[1] += speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,
@@ -263,7 +263,7 @@ impl State {
             );
         }
         if self.input.s {
-            self.uniform.cam_pos[1] += speed;
+            self.uniform.cam_pos[1] -= speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,

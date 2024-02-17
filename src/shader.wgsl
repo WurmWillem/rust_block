@@ -60,7 +60,8 @@ fn trace_ray(dir: vec3f) -> vec3f {
     var spheres = array(
         Sphere(vec3f(2.,0.,4.), 1., vec3f(0., 1., 0.)),
         Sphere(vec3f(0.,1.,3.), 1., vec3f(1., 0., 0.)),
-        Sphere(vec3f(-2.,0., 4.), 1., vec3f(0., 0., 1.)));
+        Sphere(vec3f(-2.,0., 4.), 1., vec3f(0., 0., 1.)),
+        );
 
     var closest_sphere_index = -1;
 
@@ -120,8 +121,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let view_height = 1.;
     let view_width = view_height * aspect_ratio;
 
-    let x = in.clip_position.x - win_width * 0.5;
-    let y = in.clip_position.y - win_height * 0.5;
+    let focal_length = sqrt(view_width * view_width + view_height * view_height);
+
+    let x = in.clip_position.x + in.cam_pos.x - win_width * 0.5;
+    let y = in.clip_position.y + in.cam_pos.y - win_height * 0.5;
     let dir = vec3f(x * view_width / win_width, 
         y * view_height / win_height, 
         DIST_FROM_VIEW);
