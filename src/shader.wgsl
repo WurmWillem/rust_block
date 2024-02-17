@@ -17,8 +17,7 @@ struct Uniform {
     win_size: vec2f,
 }
 
-@group(0) @binding(0) 
-var<uniform> uni: Uniform;
+@group(0) @binding(0) var<uniform> uni: Uniform;
 
 @vertex
 fn vs_main(
@@ -48,6 +47,69 @@ struct Sphere {
     color: vec3f,
 }
 
+const O = vec3f(0.);                           
+const DIST_FROM_VIEW = 1.;
+
+const MAX_T = 100000000000000000000000000000000000000.;
+
+const SPHERE_AMT = 3; 
+
+// computes intersection of ray with every object, and returns color of closest
+fn trace_ray(dir: vec3f) -> vec3f {
+    var closest_t = MAX_T;
+    var spheres = array(
+        Sphere(vec3f(2.,0.,4.), 1., vec3f(0., 1., 0.)),
+        Sphere(vec3f(0.,1.,3.), 1., vec3f(1., 0., 0.)),
+        Sphere(vec3f(-2.,0., 4.), 1., vec3f(0., 0., 1.)));
+
+    var closest_sphere_index = -1;
+
+    for (var i = 0; i < SPHERE_AMT; i += 1) {
+        
+        let intersections = intersect_ray_sphere(dir, spheres[i]);
+        
+        let t1 = intersections.x;
+        let t2 = intersections.y;
+        if t1 == MAX_T {
+            // return vec3f(0., 0., 0.);
+        }
+        if t1 >= DIST_FROM_VIEW && t1 < MAX_T && t1 < closest_t {
+            closest_t = t1;
+            closest_sphere_index = i32(i);
+        }
+        if t2 > DIST_FROM_VIEW && t2 < MAX_T && t2 < closest_t {
+            closest_t = t2;
+            closest_sphere_index = i32(i);
+        }
+    }
+
+    if closest_sphere_index >= 0 {
+        return spheres[closest_sphere_index].color;
+    } 
+
+    let unit_dir = normalize(dir);
+    let a = 1. * (unit_dir.y + 1.);
+    // return vec4<f32>(0., 0., 0.3, 1.0);
+    return ((1. - a) * vec3f(1.) + a * vec3f(0.5, 0.7, 1.));
+}
+
+fn intersect_ray_sphere(dir: vec3f, sphere: Sphere) -> vec2f {
+    let CO = O - sphere.pos;
+
+    let a = dot(dir, dir);
+    let b = 2.*dot(CO, dir);
+    let c = dot(CO, CO) - sphere.radius*sphere.radius;
+
+    let discriminant = b*b - 4.*a*c;
+    if discriminant < 0. {
+        return vec2f(MAX_T, MAX_T);
+    }
+
+    let t1 = (-b + sqrt(discriminant)) / (2.*a);
+    let t2 = (-b - sqrt(discriminant)) / (2.*a);
+    return vec2f(t1, t2);
+}
+
 // Fragment shader
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
@@ -55,8 +117,19 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let win_height = in.win_size.y;
 
     let aspect_ratio = win_width / win_height;
-    let view_height = win_height;
+    let view_height = 1.;
     let view_width = view_height * aspect_ratio;
+
+    let x = in.clip_position.x - win_width * 0.5;
+    let y = in.clip_position.y - win_height * 0.5;
+    let dir = vec3f(x * view_width / win_width, 
+        y * view_height / win_height, 
+        DIST_FROM_VIEW);
+
+    let color = trace_ray(dir);
+    return vec4<f32>(color, 1.0);
+    // return vec4<f32>(in.clip_position.x, 0., 0., 1.0);
+    /*
 
     // let focal_length = 1.;
     let focal_length = sqrt(view_width * view_width + view_height * view_height) / 1.1157034787; // / 2*tan(45/2)
@@ -79,7 +152,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let color = get_ray_color(ray);
 
     return vec4<f32>(color, 1.0);
-    // return vec4<f32>(0.99, 0., 0., 1.0);
+    // return vec4<f32>(0.99, 0., 0., 1.0);*/
 }
 
 fn get_ray_color(ray: Ray) -> vec3f {
