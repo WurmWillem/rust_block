@@ -123,13 +123,16 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
 
     let focal_length = sqrt(view_width * view_width + view_height * view_height);
 
-    let x = in.clip_position.x + in.cam_pos.x - win_width * 0.5;
-    let y = in.clip_position.y + in.cam_pos.y - win_height * 0.5;
-    let dir = vec3f(x * view_width / win_width, 
-        y * view_height / win_height, 
-        DIST_FROM_VIEW);
+    let x_win = in.clip_position.x + in.cam_pos.x - win_width * 0.5;
+    let y_win = in.clip_position.y + in.cam_pos.y - win_height * 0.5;
+    let view_coords = vec2f(
+        x_win * view_width / win_width,
+        y_win * view_height / win_height, 
+    );
 
-    let color = trace_ray(dir);
+    let ray_dir = vec3f(view_coords.xy, DIST_FROM_VIEW);
+
+    let color = trace_ray(ray_dir);
     return vec4<f32>(color, 1.0);
     // return vec4<f32>(in.clip_position.x, 0., 0., 1.0);
     /*
