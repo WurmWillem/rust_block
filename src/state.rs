@@ -1,3 +1,4 @@
+
 use crate::{
     minor::{Input, Uniform, Vertex, VERTICES},
     WIN_SIZE,
@@ -91,7 +92,7 @@ impl State {
         });
 
         let uniform = Uniform {
-            cam_pos: [0., 0.],
+            cam_pos: [0., 0., 0.],
             win_size: [WIN_SIZE.0, WIN_SIZE.1],
         };
 
@@ -182,7 +183,7 @@ impl State {
             queue,
             config,
             size,
-            render_pipeline: render_pipeline,
+            render_pipeline,
         }
     }
 
@@ -228,6 +229,12 @@ impl State {
                     VirtualKeyCode::S => {
                         self.input.s = is_pressed;
                     }
+                    VirtualKeyCode::Space => {
+                        self.input.space = is_pressed;
+                    }
+                    VirtualKeyCode::C => {
+                        self.input.c = is_pressed;
+                    }
                     _ => (),
                 };
                 false
@@ -264,6 +271,22 @@ impl State {
         }
         if self.input.s {
             self.uniform.cam_pos[1] -= speed;
+            self.queue.write_buffer(
+                &self.uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
+            );
+        }
+        if self.input.space {
+            self.uniform.cam_pos[2] += speed;
+            self.queue.write_buffer(
+                &self.uniform_buffer,
+                0,
+                bytemuck::cast_slice(&[self.uniform.cam_pos]),
+            );
+        }
+        if self.input.c {
+            self.uniform.cam_pos[2] -= speed;
             self.queue.write_buffer(
                 &self.uniform_buffer,
                 0,

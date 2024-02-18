@@ -1,7 +1,7 @@
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 pub struct Uniform {
-    pub cam_pos: [f32; 2],
+    pub cam_pos: [f32; 3],
     pub win_size: [f32; 2],
 }
 
@@ -37,6 +37,9 @@ pub struct Input {
     pub d: bool,
     pub w: bool,
     pub s: bool,
+    pub space: bool,
+    pub shift: bool,
+    pub c: bool,
 }
 impl Input {
     pub fn new() -> Input {
@@ -45,6 +48,9 @@ impl Input {
             d: false,
             w: false,
             s: false,
+            space: false,
+            shift: false,
+            c: false,
         }
     }
 }

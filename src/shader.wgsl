@@ -8,13 +8,16 @@ struct VertexInput {
 struct VertexOutput {
     @builtin(position) clip_position: vec4<f32>,
     @location(1) pos: vec3<f32>,
-    @location(2) cam_pos: vec2f,
+    @location(2) cam_pos: vec3f,
     @location(3) win_size: vec2f,
 };
 
 struct Uniform {
-    cam_pos: vec2f,
-    win_size: vec2f,
+    cam_x: f32,
+    cam_y: f32,
+    cam_z: f32,
+    win_size_x: f32,
+    win_size_y: f32,
 }
 
 @group(0) @binding(0) var<uniform> uni: Uniform;
@@ -27,8 +30,8 @@ fn vs_main(
     // out.color = vert.color;
     out.pos = vert.position;
     out.clip_position = vec4<f32>(vert.position, 1.0);
-    out.cam_pos = uni.cam_pos.xy;
-    out.win_size = uni.win_size.xy;
+    out.cam_pos = vec3f(uni.cam_x, uni.cam_y, uni.cam_z);
+    out.win_size = vec2f(uni.win_size_y, uni.win_size_x);
     // out = vec4<f32>(vert.position, 1.0);
     return out;
 }
@@ -89,9 +92,9 @@ fn trace_ray(dir: vec3f) -> vec3f {
     } 
 
     let unit_dir = normalize(dir);
-    let a = 1. * (unit_dir.y + 1.);
+    let a = 2. * (unit_dir.y + 1.);
     // return vec4<f32>(0., 0., 0.3, 1.0);
-    return ((1. - a) * vec3f(1.) + a * vec3f(0.5, 0.7, 1.));
+    return ((1. - a) * vec3f(1.) + a * vec3f(0.7, 0.4, 1.));
 }
 
 fn intersect_ray_sphere(dir: vec3f, sphere: Sphere) -> vec2f {
@@ -118,19 +121,20 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4<f32> {
     let win_height = in.win_size.y;
 
     let aspect_ratio = win_width / win_height;
-    let view_height = 1.;
+    let view_height = 1.7;
     let view_width = view_height * aspect_ratio;
 
     let focal_length = sqrt(view_width * view_width + view_height * view_height);
 
     let x_win = in.clip_position.x + in.cam_pos.x - win_width * 0.5;
-    let y_win = in.clip_position.y + in.cam_pos.y - win_height * 0.5;
-    let view_coords = vec2f(
+    let y_win = in.clip_position.y - in.cam_pos.y - win_height * 0.5;
+    let view_coords = vec3f(
         x_win * view_width / win_width,
         y_win * view_height / win_height, 
+        in.cam_pos.z * view_height / win_height,
     );
 
-    let ray_dir = vec3f(view_coords.xy, DIST_FROM_VIEW);
+    let ray_dir = vec3f(view_coords.xy, view_coords.z + DIST_FROM_VIEW);
 
     let color = trace_ray(ray_dir);
     return vec4<f32>(color, 1.0);
