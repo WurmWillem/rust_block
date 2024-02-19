@@ -55,8 +55,6 @@ const DIST_FROM_VIEW = 1.;
 
 const MAX_T = 100000000000000000000000000000000000000.;
 
-const SPHERE_AMT = 3; 
-
 // computes intersection of ray with every object, and returns color of closest
 fn trace_ray(dir: vec3f) -> vec3f {
     var closest_t = MAX_T;
@@ -64,11 +62,12 @@ fn trace_ray(dir: vec3f) -> vec3f {
         Sphere(vec3f(2.,0.,4.), 1., vec3f(0., 1., 0.)),
         Sphere(vec3f(0.,1.,3.), 1., vec3f(1., 0., 0.)),
         Sphere(vec3f(-2.,0., 4.), 1., vec3f(0., 0., 1.)),
+        Sphere(vec3f(0.,5001., 0.), 5000., vec3f(1., 1., 0.)),
         );
 
     var closest_sphere_index = -1;
 
-    for (var i = 0; i < SPHERE_AMT; i += 1) {
+    for (var i = 0; i < 4; i += 1) {
         
         let intersections = intersect_ray_sphere(dir, spheres[i]);
         
@@ -88,7 +87,9 @@ fn trace_ray(dir: vec3f) -> vec3f {
     }
 
     if closest_sphere_index >= 0 {
-        return spheres[closest_sphere_index].color;
+        let P = O + closest_t * dir;  // Compute intersection
+        let N = normalize(P - spheres[closest_sphere_index].pos);  // Compute sphere normal at intersection
+        return spheres[closest_sphere_index].color * compute_lighting(P, N);
     } 
 
     let unit_dir = normalize(dir);
@@ -112,6 +113,41 @@ fn intersect_ray_sphere(dir: vec3f, sphere: Sphere) -> vec2f {
     let t1 = (-b + sqrt(discriminant)) / (2.*a);
     let t2 = (-b - sqrt(discriminant)) / (2.*a);
     return vec2f(t1, t2);
+}
+
+struct Light {
+    kind: u32, // 0 = ambient, 1 = point, 2 = directional,
+    intensity: f32,
+    pos: vec3f, //pos for point, dir for directional
+}
+
+fn compute_lighting(P: vec3f, N: vec3f) -> f32 {
+    var lights = array(
+        Light(u32(0), 0.2, vec3f(0., 0., 0.)),
+        Light(u32(1), 0.6, vec3f(2., 1., 0.)),
+        Light(u32(2), 0.2, vec3f(1., 4., 4.)),
+    );
+
+    var intensity = 0.;
+    for (var i = 0; i < 3; i += 1) {
+        if lights[i].kind == u32(0) {
+            intensity += lights[i].intensity;
+        } else {
+            var L: vec3f;
+            if lights[i].kind == u32(1) {
+                L = lights[i].pos - P;
+            } else {
+                L = lights[i].pos;
+            }
+
+            let n_dot_l = dot(N, L);
+            if n_dot_l > 0. {
+                intensity += lights[i].intensity * n_dot_l / (length(N) * length(L));
+            }
+        }
+    }
+
+    return intensity;
 }
 
 // Fragment shader
